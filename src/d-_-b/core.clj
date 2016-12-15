@@ -56,15 +56,13 @@
                     (lf-saw freq)
                     (blip freq (* blip_rate (sin-osc:kr blip_rate)))])
           dly  (/ 1 freq)
-          src (rlpf src 1000)
+          src (rlpf src 2000)
           src (g-verb src (max room,1) reverb)
           src (lpf src cutoff-freq)
           env (env-gen:kr (env-adsr-ng attack decay sustain release attack_level sustain_level) :gate gate-trg)]
-            (pan2 (* vol amp-fudge env src) pan amp)))
+      (pan2 (* vol amp-fudge env src) pan amp)))
 
 
-
-  (ctl-global-clock 4.0)
 
   (pattern! note-buf (map note [:C#4 :E3 0 0  :B3 :D4  0 :D4  :A4 :C#4, 0, :c#4]))
   (pattern! note-buf
@@ -77,18 +75,27 @@
   (defonce bass-buf (buffer 256))
 
   (pattern! bass-buf
-            (repeat 8 (degrees-seq [:f#2 1 _ ]))
-            (repeat 8 (degrees-seq [:f#2 6 _ ]))
-            (repeat 8 (degrees-seq [:f#2 5 _ ]))
-            (repeat 8 (degrees-seq [:f#2 2 _ ]))
-            (repeat 8 (degrees-seq [:f#2 3 _ ]))
-            (repeat 8 (degrees-seq [:f#2 5 _ ])))
+            (repeat 8 (degrees-seq [:f#1 1 _ ]))
+            (repeat 8 (degrees-seq [:f#1 6 _ ]))
+            (repeat 8 (degrees-seq [:f#1 5 _ ]))
+            (repeat 8 (degrees-seq [:f#1 2 _ ]))
+            (repeat 8 (degrees-seq [:f#1 3 _ ]))
+            (repeat 8 (degrees-seq [:f#1 5 _ ])))
 
-  (def pl (plucked :note-buf note-buf :beat-bus (:count time/beat-1th) :beat-trg-bus (:beat time/beat-1th)))
-  (def pl2 (bass :note-buf bass-buf :beat-bus (:count time/beat-2th) :beat-trg-bus (:beat time/beat-2th)))
-  (ctl pl2 :attack 0.001 :sustain 1.0 :release 1.0 :amp 1.1)
-  (ctl pl :attack 0.01 :sustain 0.25 :release 0.25 :amp 1.1)
+  (defonce bass-buf2 (buffer 256))
+
+  (ctl-global-clock 8.0)
+
+  (def pl  (plucked :note-buf note-buf :beat-bus (:count time/beat-2th) :beat-trg-bus (:beat time/beat-2th)))
+  (def pl2 (bass :note-buf bass-buf :beat-bus (:count time/beat-4th) :beat-trg-bus (:beat time/beat-4th)))
+  (def pl3 (plucked :note-buf bass-buf2 :beat-bus (:count time/beat-1th) :beat-trg-bus (:beat time/beat-1th)))
+
+  (pattern! bass-buf2 (degrees-seq [:f#4 1 1 _ 1]))
+
+  (ctl pl3 :attack 0.0001 :sustain 0.125 :release 0.125 :amp 0.4)
+  (ctl pl2 :attack 0.001 :sustain 2.0 :release 1.0 :amp 0.3)
+  (ctl pl  :attack 0.01 :sustain 0.5 :release 0.5 :amp 0.4)
 
   ;;  (kill plucked)
   ;; (kill bass)
-)
+  )
